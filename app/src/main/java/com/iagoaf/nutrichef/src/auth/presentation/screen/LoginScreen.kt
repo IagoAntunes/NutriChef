@@ -48,22 +48,16 @@ import com.iagoaf.nutrichef.core.ui.theme.textCta
 import com.iagoaf.nutrichef.core.ui.theme.textPrimary
 import com.iagoaf.nutrichef.core.ui.theme.textSecondary
 import com.iagoaf.nutrichef.core.ui.theme.white
+import com.iagoaf.nutrichef.src.auth.presentation.LoginState
 
 @Composable
 fun LoginScreen(
+    state: LoginState,
     onLogin: (String, String) -> Unit,
-    onClickCreateAccount: () -> Unit
+    onRegister: (String, String, String) -> Unit,
+    onClickCreateAccount: () -> Unit,
+    onClickAlreadyHaveAccount: () -> Unit
 ) {
-    val isObscure = remember { mutableStateOf(false) }
-
-    val email = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
-
-
-    fun btnEnabled(): Boolean {
-        return email.value.isNotEmpty() && password.value.isNotEmpty()
-    }
-
     Scaffold(
         containerColor = background,
     ) { innerPadding ->
@@ -116,132 +110,313 @@ fun LoginScreen(
                     )
                     .background(white)
             ) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = 32.dp,
-                        vertical = 40.dp
-                    )
-                ) {
-                    Text(
-                        "Entrar",
-                        style = appTypography.heading2,
-                        color = textPrimary,
-                    )
-                    Text(
-                        "Acesse suas receitas saudáveis favoritas",
-                        style = appTypography.numberSm,
-                        color = textSecondary,
-                    )
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Text(
-                        "E-mail",
-                        style = appTypography.numberSm,
-                        color = textPrimary,
-                    )
-                    CTextField(
-                        value = email.value,
-                        onValueChange = {
-                            email.value = it
-                        },
-                        placeHolder = "seu@mail.com"
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        "Senha",
-                        style = appTypography.numberSm,
-                        color = textPrimary,
-                    )
-                    CTextField(
-                        value = password.value,
-                        onValueChange = {
-                            password.value = it
-                        },
-                        placeHolder = "Sua senha de acesso",
-                        visualTransformation = if (isObscure.value) PasswordVisualTransformation() else VisualTransformation.None,
-                        suffix = {
-                            Image(
-                                painter = painterResource(
-                                    if (isObscure.value) {
-                                        R.drawable.ic_eye
-                                    } else {
-                                        R.drawable.ic_eye_closed
-                                    }
-                                ),
-                                contentDescription = "Visibility Icon",
-                                modifier = Modifier.clickable {
-                                    isObscure.value = !isObscure.value
-                                }
+                when (state) {
+                    is LoginState.Idle -> {
+                        if (state.isLogin) {
+                            LoginContent(
+                                onLogin = onLogin,
+                                onClickCreateAccount = onClickCreateAccount
+                            )
+                        } else {
+                            RegisterContent(
+                                onRegister = onRegister,
+                                onClickAlreadyHaveAccount = onClickAlreadyHaveAccount,
                             )
                         }
-                    )
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Button(
-                        onClick = {
-                            onLogin(email.value, password.value)
-                        },
-                        enabled = btnEnabled(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = primary
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        contentPadding = PaddingValues(
-                            vertical = 16.dp
-                        )
-                    ) {
-                        Text(
-                            "Acessar",
-                            style = appTypography.numberMd,
-                            color = textCta
-                        )
                     }
-                    Spacer(modifier = Modifier.weight(1f))
-                    HorizontalDivider(
-                        color = border,
-                        modifier = Modifier.padding(
-                            vertical = 24.dp
-                        )
-                    )
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = textPrimary,
-                                    fontSize = appTypography.numberSm.fontSize, // agora correto
-                                    fontWeight = appTypography.numberSm.fontWeight
-                                )
-                            ) {
-                                append("Não tem uma conta? ")
-                            }
-                            withStyle(
-                                style = SpanStyle(
-                                    color = primary,
-                                    fontSize = appTypography.numberSm.fontSize,
-                                    fontWeight = appTypography.numberSm.fontWeight,
-                                    textDecoration = TextDecoration.Underline
-                                )
-                            ) {
-                                append("Criar conta")
-                            }
-                        },
-                        style = appTypography.numberSm,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-
                 }
             }
         }
     }
 }
 
+@Composable
+fun RegisterContent(
+    onRegister: (String, String, String) -> Unit,
+    onClickAlreadyHaveAccount: () -> Unit,
+) {
+
+    val nameValue = remember { mutableStateOf("") }
+    val emailValue = remember { mutableStateOf("") }
+    val passwordValue = remember { mutableStateOf("") }
+
+    fun btnEnabled(): Boolean {
+        return nameValue.value.isNotEmpty() &&
+                emailValue.value.isNotEmpty() &&
+                passwordValue.value.isNotEmpty()
+    }
+
+    Column(
+        modifier = Modifier.padding(
+            horizontal = 32.dp,
+            vertical = 40.dp
+        )
+    ) {
+        Text(
+            "Cadastrar",
+            style = appTypography.heading2,
+            color = textPrimary,
+        )
+        Text(
+            "Crie sua conta e tenha acesso a receitas",
+            style = appTypography.numberSm,
+            color = textSecondary,
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            "Nome",
+            style = appTypography.numberSm,
+            color = textPrimary,
+        )
+        CTextField(
+            value = nameValue.value,
+            onValueChange = {},
+            placeHolder = "Seu nome completo"
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            "E-mail",
+            style = appTypography.numberSm,
+            color = textPrimary,
+        )
+        CTextField(
+            value = emailValue.value,
+            onValueChange = {},
+            placeHolder = "seu@mail.com"
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            "Senha",
+            style = appTypography.numberSm,
+            color = textPrimary,
+        )
+        CTextField(
+            value = passwordValue.value,
+            onValueChange = {},
+            placeHolder = "Sua senha de acesso"
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = primary,
+            ),
+            shape = RoundedCornerShape(16.dp),
+            contentPadding = PaddingValues(
+                vertical = 16.dp
+            ),
+            onClick = {
+                onRegister(
+                    nameValue.value,
+                    emailValue.value,
+                    passwordValue.value
+                )
+            },
+            enabled = btnEnabled()
+        ) {
+            Text(
+                "Acessar",
+                style = appTypography.numberMd,
+                color = textCta
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        HorizontalDivider(
+            color = border,
+            modifier = Modifier.padding(
+                vertical = 24.dp
+            )
+        )
+        Text(
+            buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        color = textPrimary,
+                        fontSize = appTypography.numberSm.fontSize,
+                        fontWeight = appTypography.numberSm.fontWeight
+                    )
+                ) {
+                    append("Já tem uma conta? ")
+                }
+                withStyle(
+                    style = SpanStyle(
+                        color = primary,
+                        fontSize = appTypography.numberSm.fontSize,
+                        fontWeight = appTypography.numberSm.fontWeight,
+                        textDecoration = TextDecoration.None
+                    )
+                ) {
+                    append(" Entrar na conta")
+                }
+            },
+            style = appTypography.numberSm,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable
+                {
+                    onClickAlreadyHaveAccount()
+                }
+        )
+    }
+}
+
+@Composable
+fun LoginContent(
+    onLogin: (String, String) -> Unit,
+    onClickCreateAccount: () -> Unit,
+) {
+    val isObscure = remember { mutableStateOf(false) }
+
+    val email = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
+
+    fun btnEnabled(): Boolean {
+        return email.value.isNotEmpty() && password.value.isNotEmpty()
+    }
+
+    Column(
+        modifier = Modifier.padding(
+            horizontal = 32.dp,
+            vertical = 40.dp
+        )
+    ) {
+        Text(
+            "Entrar",
+            style = appTypography.heading2,
+            color = textPrimary,
+        )
+        Text(
+            "Acesse suas receitas saudáveis favoritas",
+            style = appTypography.numberSm,
+            color = textSecondary,
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            "E-mail",
+            style = appTypography.numberSm,
+            color = textPrimary,
+        )
+        CTextField(
+            value = email.value,
+            onValueChange = {
+                email.value = it
+            },
+            placeHolder = "seu@mail.com"
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            "Senha",
+            style = appTypography.numberSm,
+            color = textPrimary,
+        )
+        CTextField(
+            value = password.value,
+            onValueChange = {
+                password.value = it
+            },
+            placeHolder = "Sua senha de acesso",
+            visualTransformation = if (isObscure.value) PasswordVisualTransformation() else VisualTransformation.None,
+            suffix = {
+                Image(
+                    painter = painterResource(
+                        if (isObscure.value) {
+                            R.drawable.ic_eye
+                        } else {
+                            R.drawable.ic_eye_closed
+                        }
+                    ),
+                    contentDescription = "Visibility Icon",
+                    modifier = Modifier.clickable {
+                        isObscure.value = !isObscure.value
+                    }
+                )
+            }
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            onClick = {
+                onLogin(email.value, password.value)
+            },
+            enabled = btnEnabled(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = primary
+            ),
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            contentPadding = PaddingValues(
+                vertical = 16.dp
+            )
+        ) {
+            Text(
+                "Acessar",
+                style = appTypography.numberMd,
+                color = textCta
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        HorizontalDivider(
+            color = border,
+            modifier = Modifier.padding(
+                vertical = 24.dp
+            )
+        )
+        Text(
+            buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        color = textPrimary,
+                        fontSize = appTypography.numberSm.fontSize,
+                        fontWeight = appTypography.numberSm.fontWeight
+                    )
+                ) {
+                    append("Não tem uma conta? ")
+                }
+                withStyle(
+                    style = SpanStyle(
+                        color = primary,
+                        fontSize = appTypography.numberSm.fontSize,
+                        fontWeight = appTypography.numberSm.fontWeight,
+                        textDecoration = TextDecoration.Underline
+                    )
+                ) {
+                    append("Criar conta")
+                }
+            },
+            style = appTypography.numberSm,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    onClickCreateAccount()
+                }
+        )
+    }
+}
+
+
 @Preview
 @Composable
 private fun LoginScreenPreview() {
     LoginScreen(
+        state = LoginState.Idle(isLogin = true),
         onLogin = { _, _ -> },
-        onClickCreateAccount = {}
+        onClickCreateAccount = {},
+        onRegister = { _, _, _ -> },
+        onClickAlreadyHaveAccount = {  }
+    )
+}
+
+@Preview
+@Composable
+private fun RegisterScreenPreview() {
+    LoginScreen(
+        state = LoginState.Idle(isLogin = false),
+        onLogin = { _, _ -> },
+        onClickCreateAccount = {},
+        onRegister = { _, _, _ -> },
+        onClickAlreadyHaveAccount = { }
     )
 }
