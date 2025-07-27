@@ -1,29 +1,61 @@
 package com.iagoaf.nutrichef
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
+import com.iagoaf.nutrichef.core.routes.AppRoutes
 import com.iagoaf.nutrichef.core.ui.theme.NutriChefTheme
+import com.iagoaf.nutrichef.src.auth.presentation.screen.LoginScreen
+import com.iagoaf.nutrichef.src.auth.presentation.viewmodel.AuthViewModel
+import com.iagoaf.nutrichef.src.auth.presentation.viewmodel.LoginViewModel
+import com.iagoaf.nutrichef.src.home.domain.model.DishModel
+import com.iagoaf.nutrichef.src.home.presentation.screen.HomeScreen
+import com.iagoaf.nutrichef.src.home.presentation.viewmodel.HomeViewModel
+import com.iagoaf.nutrichef.src.plateDetail.presentation.screen.PlateDetailScreen
+import com.iagoaf.nutrichef.src.plateDetail.presentation.viewmodel.PlateDetailViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val navController = rememberNavController()
             NutriChefTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val authViewModel: AuthViewModel = hiltViewModel()
+                val isLogged = authViewModel.isUserLoggedIn.collectAsState()
+
+                when (isLogged.value) {
+                    null -> {
+                        // Show splash screen or loading state
+                    }
+
+                    true -> {
+                        AppNavHost(
+                            navController = navController,
+                            startDestination = AppRoutes.HOME,
+                            authViewModel = authViewModel
+                        )
+                    }
+
+                    false -> {
+                        AppNavHost(
+                            navController = navController,
+                            startDestination = AppRoutes.LOGIN,
+                            authViewModel = authViewModel
+                        )
+                    }
                 }
             }
         }
@@ -31,17 +63,67 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun AppNavHost(
+    navController: NavHostController,
+    startDestination: String,
+    authViewModel: AuthViewModel
+) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        composable("${AppRoutes.PLATEDETAIL}/{dishJson}") { backStackEntry ->
+            val dishJson = backStackEntry.arguments?.getString("dishJson")
+            val dish = Gson().fromJson(dishJson, DishModel::class.java)
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    NutriChefTheme {
-        Greeting("Android")
+            val plateDetailViewModel: PlateDetailViewModel = hiltViewModel()
+
+            PlateDetailScreen(
+                dish = dish,
+                onBack = { navController.popBackStack() },
+                onClickShowDetails = {}
+            )
+        }
+
+        composable(AppRoutes.HOME) {
+            val homeViewModel: HomeViewModel = hiltViewModel()
+            val state = homeViewModel.state.collectAsState()
+            HomeScreen(
+                state = state.value,
+                onClickSearch = {},
+                onClickLogout = {
+                    authViewModel.logout()
+                },
+                onClickDish = { dish ->
+                    val jsonDish = Uri.encode(Gson().toJson(dish))
+                    navController.navigate("${AppRoutes.PLATEDETAIL}/$jsonDish")
+                }
+
+            )
+        }
+        composable(AppRoutes.LOGIN) {
+            val loginViewModel: LoginViewModel = hiltViewModel()
+            val state = loginViewModel.state.collectAsState()
+            val listener = loginViewModel.listener.collectAsState()
+            LoginScreen(
+                state = state.value,
+                listener = listener.value,
+                onLogin = { email, password ->
+                    loginViewModel.login(email, password, onEnd = {
+                        authViewModel.checkUserLoggedIn()
+                    })
+                },
+                onRegister = { name, email, password ->
+                    loginViewModel.register(name, email, password)
+                },
+                onClickCreateAccount = {
+
+                },
+                onClickAlreadyHaveAccount = {},
+                onChangeAuthMode = { isLogin ->
+                    loginViewModel.changeAuthMode(isLogin)
+                }
+            )
+        }
     }
 }

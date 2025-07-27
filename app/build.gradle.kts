@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp") version "2.1.21-2.0.1"
+    id("com.google.dagger.hilt.android") version "2.56.2"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -40,7 +43,19 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.gson)
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-common")
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    ksp("com.google.dagger:hilt-compiler:2.56.2")
+    implementation("androidx.navigation:navigation-compose:2.9.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

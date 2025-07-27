@@ -2,6 +2,7 @@ package com.iagoaf.nutrichef.src.plateDetail.presentation.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,9 +36,14 @@ import com.iagoaf.nutrichef.core.ui.theme.primary
 import com.iagoaf.nutrichef.core.ui.theme.surface
 import com.iagoaf.nutrichef.core.ui.theme.textCta
 import com.iagoaf.nutrichef.core.ui.theme.textPrimary
+import com.iagoaf.nutrichef.src.home.domain.model.Details
+import com.iagoaf.nutrichef.src.home.domain.model.DishModel
+import com.iagoaf.nutrichef.src.home.domain.model.MoreDetails
 
 @Composable
 fun PlateDetailScreen(
+    dish: DishModel,
+    onBack: () -> Unit,
     onClickShowDetails: () -> Unit,
 ) {
     Scaffold(
@@ -49,13 +55,16 @@ fun PlateDetailScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 16.dp),
+                    .padding(horizontal = 12.dp, vertical = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Image(
                     painter = painterResource(R.drawable.ic_arrow_left),
                     contentDescription = "Back",
-                    colorFilter = ColorFilter.tint(textPrimary)
+                    colorFilter = ColorFilter.tint(textPrimary),
+                    modifier = Modifier.clickable {
+                        onBack()
+                    }
                 )
                 Image(
                     painter = painterResource(R.drawable.ic_favorite_off),
@@ -63,7 +72,7 @@ fun PlateDetailScreen(
                     colorFilter = ColorFilter.tint(textPrimary)
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp))
+//            Spacer(modifier = Modifier.height(24.dp))
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -72,7 +81,7 @@ fun PlateDetailScreen(
                     .padding(horizontal = 32.dp)
             ) {
                 Text(
-                    "Salada variada",
+                    dish.name,
                     style = appTypography.heading1,
                     color = textPrimary,
                     textAlign = TextAlign.Center,
@@ -94,7 +103,7 @@ fun PlateDetailScreen(
                             color = textPrimary
                         )
                         Text(
-                            "221,15 kcal",
+                            dish.calories,
                             style = appTypography.numberMd,
                             color = textPrimary
                         )
@@ -108,7 +117,7 @@ fun PlateDetailScreen(
                             color = textPrimary
                         )
                         Text(
-                            "240 g",
+                            dish.portionTotal,
                             style = appTypography.numberMd,
                             color = textPrimary
                         )
@@ -131,7 +140,7 @@ fun PlateDetailScreen(
                                 color = textPrimary
                             )
                             Text(
-                                "15,13 g",
+                                "${dish.details.proteins} g",
                                 style = appTypography.numberSm,
                                 color = textPrimary
                             )
@@ -163,7 +172,7 @@ fun PlateDetailScreen(
                                 color = textPrimary
                             )
                             Text(
-                                "18,40 g",
+                                "${dish.details.carbohydrates} g",
                                 style = appTypography.numberSm,
                                 color = textPrimary
                             )
@@ -195,7 +204,7 @@ fun PlateDetailScreen(
                                 color = textPrimary
                             )
                             Text(
-                                "4,88 g",
+                                "${dish.details.sugar} g",
                                 style = appTypography.numberSm,
                                 color = textPrimary
                             )
@@ -227,7 +236,7 @@ fun PlateDetailScreen(
                                 color = textPrimary
                             )
                             Text(
-                                "5,18 g",
+                                "${dish.details.fats} g",
                                 style = appTypography.numberSm,
                                 color = textPrimary
                             )
@@ -271,6 +280,19 @@ fun PlateDetailScreen(
 @Composable
 private fun PlateDetailPreview() {
     PlateDetailScreen(
-        onClickShowDetails = {}
+        onBack = {},
+        onClickShowDetails = {},
+        dish = DishModel(
+            photoUrl = "https://example.com/images/sushi.jpg",
+            name = "Combo Sushi",
+            category = "principal",
+            description = "Seleção de sushis variados, incluindo nigiri e sashimi.",
+            calories = "280 kcal",
+            energy = 280,
+            portionTotal = "220g",
+            typeDish = "Principal",
+            details = Details(12, 38, 8, 6),
+            moreDetails = MoreDetails(280, 12, 38, 6, 35, 600, 300, 40, 2, 20, 8, 0, 0.2)
+        ),
     )
 }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,14 +50,17 @@ import com.iagoaf.nutrichef.core.ui.theme.textPrimary
 import com.iagoaf.nutrichef.core.ui.theme.textSecondary
 import com.iagoaf.nutrichef.core.ui.theme.white
 import com.iagoaf.nutrichef.src.auth.presentation.LoginState
+import com.iagoaf.nutrichef.src.auth.presentation.state.LoginListener
 
 @Composable
 fun LoginScreen(
     state: LoginState,
+    listener: LoginListener,
     onLogin: (String, String) -> Unit,
     onRegister: (String, String, String) -> Unit,
     onClickCreateAccount: () -> Unit,
-    onClickAlreadyHaveAccount: () -> Unit
+    onClickAlreadyHaveAccount: () -> Unit,
+    onChangeAuthMode: (Boolean) -> Unit,
 ) {
     Scaffold(
         containerColor = background,
@@ -97,7 +101,6 @@ fun LoginScreen(
                         textAlign = TextAlign.Center,
                     )
                 }
-
             }
             Box(
                 modifier = Modifier
@@ -115,12 +118,15 @@ fun LoginScreen(
                         if (state.isLogin) {
                             LoginContent(
                                 onLogin = onLogin,
-                                onClickCreateAccount = onClickCreateAccount
+                                onClickCreateAccount = onClickCreateAccount,
+                                onChangeAuthMode = onChangeAuthMode
                             )
                         } else {
                             RegisterContent(
                                 onRegister = onRegister,
                                 onClickAlreadyHaveAccount = onClickAlreadyHaveAccount,
+                                onChangeAuthMode = onChangeAuthMode,
+                                state = state,
                             )
                         }
                     }
@@ -134,6 +140,8 @@ fun LoginScreen(
 fun RegisterContent(
     onRegister: (String, String, String) -> Unit,
     onClickAlreadyHaveAccount: () -> Unit,
+    onChangeAuthMode: (Boolean) -> Unit,
+    state: LoginState
 ) {
 
     val nameValue = remember { mutableStateOf("") }
@@ -145,6 +153,8 @@ fun RegisterContent(
                 emailValue.value.isNotEmpty() &&
                 passwordValue.value.isNotEmpty()
     }
+
+    val isObscure = remember { mutableStateOf(true) }
 
     Column(
         modifier = Modifier.padding(
@@ -170,7 +180,9 @@ fun RegisterContent(
         )
         CTextField(
             value = nameValue.value,
-            onValueChange = {},
+            onValueChange = {
+                nameValue.value = it
+            },
             placeHolder = "Seu nome completo"
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -181,7 +193,9 @@ fun RegisterContent(
         )
         CTextField(
             value = emailValue.value,
-            onValueChange = {},
+            onValueChange = {
+                emailValue.value = it
+            },
             placeHolder = "seu@mail.com"
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -192,8 +206,25 @@ fun RegisterContent(
         )
         CTextField(
             value = passwordValue.value,
-            onValueChange = {},
-            placeHolder = "Sua senha de acesso"
+            onValueChange = {
+                passwordValue.value = it
+            },
+            placeHolder = "Sua senha de acesso",
+            suffix = {
+                Image(
+                    painter = painterResource(
+                        if (isObscure.value) {
+                            R.drawable.ic_eye
+                        } else {
+                            R.drawable.ic_eye_closed
+                        }
+                    ),
+                    contentDescription = "Visibility Icon",
+                    modifier = Modifier.clickable {
+                        isObscure.value = !isObscure.value
+                    }
+                )
+            }
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
@@ -215,11 +246,20 @@ fun RegisterContent(
             },
             enabled = btnEnabled()
         ) {
-            Text(
-                "Acessar",
-                style = appTypography.numberMd,
-                color = textCta
-            )
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    color = white,
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    "Acessar",
+                    style = appTypography.numberMd,
+                    color = textCta
+                )
+            }
+
         }
         Spacer(modifier = Modifier.weight(1f))
         HorizontalDivider(
@@ -256,7 +296,7 @@ fun RegisterContent(
                 .fillMaxWidth()
                 .clickable
                 {
-                    onClickAlreadyHaveAccount()
+                    onChangeAuthMode(true)
                 }
         )
     }
@@ -266,6 +306,7 @@ fun RegisterContent(
 fun LoginContent(
     onLogin: (String, String) -> Unit,
     onClickCreateAccount: () -> Unit,
+    onChangeAuthMode: (Boolean) -> Unit
 ) {
     val isObscure = remember { mutableStateOf(false) }
 
@@ -390,7 +431,7 @@ fun LoginContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    onClickCreateAccount()
+                    onChangeAuthMode(false)
                 }
         )
     }
@@ -401,11 +442,13 @@ fun LoginContent(
 @Composable
 private fun LoginScreenPreview() {
     LoginScreen(
-        state = LoginState.Idle(isLogin = true),
+        state = LoginState.Idle(isLogin = true, isLoading = false),
         onLogin = { _, _ -> },
         onClickCreateAccount = {},
         onRegister = { _, _, _ -> },
-        onClickAlreadyHaveAccount = {  }
+        onClickAlreadyHaveAccount = { },
+        onChangeAuthMode = {},
+        listener = LoginListener.Idle
     )
 }
 
@@ -413,10 +456,12 @@ private fun LoginScreenPreview() {
 @Composable
 private fun RegisterScreenPreview() {
     LoginScreen(
-        state = LoginState.Idle(isLogin = false),
+        state = LoginState.Idle(isLogin = false, isLoading = false),
         onLogin = { _, _ -> },
         onClickCreateAccount = {},
         onRegister = { _, _, _ -> },
-        onClickAlreadyHaveAccount = { }
+        onClickAlreadyHaveAccount = { },
+        onChangeAuthMode = {},
+        listener = LoginListener.Idle
     )
 }

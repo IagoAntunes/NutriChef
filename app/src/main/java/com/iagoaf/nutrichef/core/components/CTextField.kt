@@ -23,10 +23,11 @@ fun CTextField(
     placeHolder: String,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     suffix: @Composable (() -> Unit)? = null,
-    onValueChange: (String) -> Unit = {}
+    onValueChange: (String) -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = Modifier.border(
+        modifier = modifier.border(
             width = 1.dp,
             color = border,
             shape = RoundedCornerShape(8.dp)
