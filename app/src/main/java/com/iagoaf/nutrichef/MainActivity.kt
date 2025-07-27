@@ -23,6 +23,8 @@ import com.iagoaf.nutrichef.src.home.presentation.screen.HomeScreen
 import com.iagoaf.nutrichef.src.home.presentation.viewmodel.HomeViewModel
 import com.iagoaf.nutrichef.src.plateDetail.presentation.screen.PlateDetailScreen
 import com.iagoaf.nutrichef.src.plateDetail.presentation.viewmodel.PlateDetailViewModel
+import com.iagoaf.nutrichef.src.search.presentation.screen.SearchScreen
+import com.iagoaf.nutrichef.src.search.presentation.viewmodel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -72,16 +74,48 @@ fun AppNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
+        composable(AppRoutes.SEARCH) {
+            val searchViewModel: SearchViewModel = hiltViewModel()
+            val state = searchViewModel.state.collectAsState()
+            SearchScreen(
+                state = state.value,
+                onBack = {
+                    navController.popBackStack()
+                },
+                onFilter = {
+                    searchViewModel.filter(it)
+                },
+                onClickReceipt = { dish ->
+                    val jsonDish = Uri.encode(Gson().toJson(dish))
+                    navController.navigate("${AppRoutes.PLATEDETAIL}/$jsonDish")
+                }
+            )
+        }
         composable("${AppRoutes.PLATEDETAIL}/{dishJson}") { backStackEntry ->
             val dishJson = backStackEntry.arguments?.getString("dishJson")
             val dish = Gson().fromJson(dishJson, DishModel::class.java)
-
             val plateDetailViewModel: PlateDetailViewModel = hiltViewModel()
-
+            val state = plateDetailViewModel.state.collectAsState()
+            plateDetailViewModel.dish = dish
             PlateDetailScreen(
+                state = state.value,
                 dish = dish,
                 onBack = { navController.popBackStack() },
-                onClickShowDetails = {}
+                onClickShowDetails = {
+                    plateDetailViewModel.changeState(it)
+                },
+                getProteinBars = {
+                    plateDetailViewModel.getProteinBars()
+                },
+                getCarbohydrateBars = {
+                    plateDetailViewModel.getCarbohydrateBars()
+                },
+                getSugarBars = {
+                    plateDetailViewModel.getSugarBars()
+                },
+                getFatBars = {
+                    plateDetailViewModel.getFatBars()
+                }
             )
         }
 
@@ -90,7 +124,9 @@ fun AppNavHost(
             val state = homeViewModel.state.collectAsState()
             HomeScreen(
                 state = state.value,
-                onClickSearch = {},
+                onClickSearch = {
+                    navController.navigate(AppRoutes.SEARCH)
+                },
                 onClickLogout = {
                     authViewModel.logout()
                 },

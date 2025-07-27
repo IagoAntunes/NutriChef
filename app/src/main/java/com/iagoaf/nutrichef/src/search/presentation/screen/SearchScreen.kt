@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,10 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.iagoaf.nutrichef.R
 import com.iagoaf.nutrichef.core.components.CTextField
 import com.iagoaf.nutrichef.core.ui.theme.appTypography
@@ -42,10 +46,15 @@ import com.iagoaf.nutrichef.core.ui.theme.primary
 import com.iagoaf.nutrichef.core.ui.theme.surface
 import com.iagoaf.nutrichef.core.ui.theme.textPrimary
 import com.iagoaf.nutrichef.core.ui.theme.textSecondary
+import com.iagoaf.nutrichef.src.home.domain.model.DishModel
+import com.iagoaf.nutrichef.src.search.presentation.state.SearchState
 
 @Composable
 fun SearchScreen(
-    onClickReceipt: () -> Unit,
+    state: SearchState,
+    onBack: () -> Unit = {},
+    onFilter: (String) -> Unit,
+    onClickReceipt: (DishModel) -> Unit,
 ) {
 
     val searchValue = remember { mutableStateOf("") }
@@ -64,7 +73,10 @@ fun SearchScreen(
                 Image(
                     painter = painterResource(R.drawable.ic_arrow_left),
                     contentDescription = "Back",
-                    colorFilter = ColorFilter.tint(textPrimary)
+                    colorFilter = ColorFilter.tint(textPrimary),
+                    modifier = Modifier.clickable {
+                        onBack()
+                    }
                 )
                 Text(
                     "Buscar receitas",
@@ -76,85 +88,110 @@ fun SearchScreen(
                         .align(Alignment.CenterVertically)
                 )
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                    .background(surface)
-                    .padding(horizontal = 24.dp)
-            ) {
-                Column {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+            when (state) {
+                SearchState.Idle -> {
+
+                }
+
+                SearchState.Loading -> {
+                    CircularProgressIndicator(
+                        color = primary,
+                        strokeWidth = 2.dp
+                    )
+                }
+
+                is SearchState.Success -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                            .background(surface)
+                            .padding(horizontal = 24.dp)
                     ) {
-                        CTextField(
-                            value = searchValue.value,
-                            onValueChange = { searchValue.value = it },
-                            placeHolder = "Buscar receitas",
-                            modifier = Modifier
-                                .weight(1f)
-                        )
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primary)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = null,
-                                tint = Color.White
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(24.dp))
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(24.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(6) {
+                        Column {
+                            Spacer(modifier = Modifier.height(24.dp))
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onClickReceipt()
-                                    }
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(
+                                CTextField(
+                                    value = searchValue.value,
+                                    onValueChange = { searchValue.value = it },
+                                    placeHolder = "Buscar receitas",
                                     modifier = Modifier
-                                        .size(60.dp)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(primary),
+                                        .weight(1f)
                                 )
-                                Column(
-                                    modifier = Modifier.weight(1f)
+                                Button(
+                                    onClick = {
+                                        onFilter(searchValue.value)
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = primary)
                                 ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            "Salada variada",
-                                            style = appTypography.heading2,
-                                            color = textPrimary,
-                                        )
-                                        Text(
-                                            "221,15 kcal",
-                                            style = appTypography.numberMd,
-                                            color = textPrimary,
-                                        )
-                                    }
-                                    Text(
-                                        "15,13g proteínas,  18,40g carbo",
-                                        style = appTypography.numberSm,
-                                        color = textSecondary
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = null,
+                                        tint = Color.White
                                     )
                                 }
                             }
-                        }
+                            Spacer(modifier = Modifier.height(24.dp))
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(24.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(state.dishes) { dish ->
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onClickReceipt(dish)
+                                            }
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(60.dp)
+                                                .clip(RoundedCornerShape(16.dp)),
+                                        ) {
+                                            AsyncImage(
+                                                model = dish.photoUrl,
+                                                contentScale = ContentScale.Crop,
+                                                contentDescription = "Dish Image",
+                                                placeholder = painterResource(R.drawable.ic_launcher_background),
+                                                error = painterResource(R.drawable.ic_favorite_on),
+                                                modifier = Modifier.fillMaxSize(),
+                                            )
+                                        }
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    dish.name,
+                                                    style = appTypography.heading2,
+                                                    color = textPrimary,
+                                                )
+                                                Text(
+                                                    dish.calories,
+                                                    style = appTypography.numberMd,
+                                                    color = textPrimary,
+                                                )
+                                            }
+                                            Text(
+                                                "${dish.details.proteins}g proteina - ${dish.details.carbohydrates}g carboidratos",
+                                                style = appTypography.numberSm,
+                                                color = textSecondary,
+                                            )
+                                        }
+                                    }
+                                }
 
+                            }
+                        }
                     }
                 }
             }
@@ -166,6 +203,8 @@ fun SearchScreen(
 @Composable
 private fun SearchScreenPreview() {
     SearchScreen(
+        state = SearchState.Idle,
+        onFilter = {},
         onClickReceipt = {}
     )
 }

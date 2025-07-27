@@ -34,17 +34,24 @@ import com.iagoaf.nutrichef.core.ui.theme.appTypography
 import com.iagoaf.nutrichef.core.ui.theme.background
 import com.iagoaf.nutrichef.core.ui.theme.primary
 import com.iagoaf.nutrichef.core.ui.theme.surface
+import com.iagoaf.nutrichef.core.ui.theme.surfaceElement
 import com.iagoaf.nutrichef.core.ui.theme.textCta
 import com.iagoaf.nutrichef.core.ui.theme.textPrimary
 import com.iagoaf.nutrichef.src.home.domain.model.Details
 import com.iagoaf.nutrichef.src.home.domain.model.DishModel
 import com.iagoaf.nutrichef.src.home.domain.model.MoreDetails
+import com.iagoaf.nutrichef.src.plateDetail.presentation.state.PlateDetailState
 
 @Composable
 fun PlateDetailScreen(
+    state: PlateDetailState,
     dish: DishModel,
     onBack: () -> Unit,
-    onClickShowDetails: () -> Unit,
+    onClickShowDetails: (PlateDetailState) -> Unit,
+    getProteinBars: () -> Int = { 0 },
+    getCarbohydrateBars: () -> Int = { 0 },
+    getSugarBars: () -> Int = { 0 },
+    getFatBars: () -> Int = { 0 },
 ) {
     Scaffold(
         containerColor = background,
@@ -80,199 +87,443 @@ fun PlateDetailScreen(
                     .background(surface)
                     .padding(horizontal = 32.dp)
             ) {
-                Text(
-                    dish.name,
-                    style = appTypography.heading1,
-                    color = textPrimary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(vertical = 8.dp)
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            "Energia",
-                            style = appTypography.heading3,
-                            color = textPrimary
-                        )
-                        Text(
-                            dish.calories,
-                            style = appTypography.numberMd,
-                            color = textPrimary
-                        )
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            "Porção total",
-                            style = appTypography.heading3,
-                            color = textPrimary
-                        )
-                        Text(
-                            dish.portionTotal,
-                            style = appTypography.numberMd,
-                            color = textPrimary
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                when (state) {
+                    PlateDetailState.MoreDetails -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Text(
-                                "Proteinas",
-                                style = appTypography.heading3,
-                                color = textPrimary
-                            )
-                            Text(
-                                "${dish.details.proteins} g",
-                                style = appTypography.numberSm,
-                                color = textPrimary
-                            )
-                        }
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            items(6) {
-                                Box(
-                                    modifier = Modifier
-                                        .height(8.dp)
-                                        .width(42.dp)
-                                        .clip(RoundedCornerShape(80.dp))
-                                        .background(primary)
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Energia",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.energy.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Proteinas",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.proteins.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Carboidratos",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.carbohydrates.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Gorduras Totais",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.totalFat.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Colesterol",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.totalFat.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Sódio",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.totalFat.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Potássio",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.totalFat.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Cálcio",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.calcium.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Ferro",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.iron.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Magnésio",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.magnesium.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Vitamina C",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.vitaminC.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Vitamina D",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.vitaminD.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Vitamina B6",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.moreDetails.vitaminB6.toString(),
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Button(
+                                onClick = {
+                                    onClickShowDetails(PlateDetailState.SimpleDetails)
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = primary),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(vertical = 12.dp)
+                            ) {
+                                Text(
+                                    "Voltar",
+                                    style = appTypography.numberMd,
+                                    color = textCta
                                 )
                             }
                         }
                     }
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+
+                    PlateDetailState.SimpleDetails -> {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
+                            Spacer(modifier = Modifier.height(14.dp))
                             Text(
-                                "Carboidratos",
-                                style = appTypography.heading3,
-                                color = textPrimary
+                                dish.name,
+                                style = appTypography.heading1,
+                                color = textPrimary,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(vertical = 8.dp)
                             )
-                            Text(
-                                "${dish.details.carbohydrates} g",
-                                style = appTypography.numberSm,
-                                color = textPrimary
-                            )
-                        }
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            items(6) {
-                                Box(
-                                    modifier = Modifier
-                                        .height(8.dp)
-                                        .width(42.dp)
-                                        .clip(RoundedCornerShape(80.dp))
-                                        .background(primary)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        "Energia",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.calories,
+                                        style = appTypography.numberMd,
+                                        color = textPrimary
+                                    )
+                                }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        "Porção total",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        dish.portionTotal,
+                                        style = appTypography.numberMd,
+                                        color = textPrimary
+                                    )
+                                }
+                            }
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "Proteinas",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        "${dish.details.proteins} kcal",
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    val filledBars = getProteinBars()
+                                    items(6) { index ->
+                                        Box(
+                                            modifier = Modifier
+                                                .height(8.dp)
+                                                .width(42.dp)
+                                                .clip(RoundedCornerShape(80.dp))
+                                                .background(
+                                                    if (index < filledBars) primary
+                                                    else surfaceElement
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "Carboidratos",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        "${dish.details.carbohydrates} kcal",
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    val filledBars = getCarbohydrateBars()
+                                    items(6) { index ->
+                                        Box(
+                                            modifier = Modifier
+                                                .height(8.dp)
+                                                .width(42.dp)
+                                                .clip(RoundedCornerShape(80.dp))
+                                                .background(
+                                                    if (index < filledBars) primary
+                                                    else surfaceElement
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "Açucar",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        "${dish.details.sugar} kcal",
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    val filledBars = getSugarBars()
+                                    items(6) { index ->
+                                        Box(
+                                            modifier = Modifier
+                                                .height(8.dp)
+                                                .width(42.dp)
+                                                .clip(RoundedCornerShape(80.dp))
+                                                .background(
+                                                    if (index < filledBars) primary
+                                                    else surfaceElement
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "Gorduras",
+                                        style = appTypography.heading3,
+                                        color = textPrimary
+                                    )
+                                    Text(
+                                        "${dish.details.fats} kcal",
+                                        style = appTypography.numberSm,
+                                        color = textPrimary
+                                    )
+                                }
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    val filledBars = getFatBars()
+                                    items(6) { index ->
+                                        Box(
+                                            modifier = Modifier
+                                                .height(8.dp)
+                                                .width(42.dp)
+                                                .clip(RoundedCornerShape(80.dp))
+                                                .background(
+                                                    if (index < filledBars) primary
+                                                    else surfaceElement
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Button(
+                                onClick = {
+                                    onClickShowDetails(PlateDetailState.MoreDetails)
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = primary),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(vertical = 12.dp)
+                            ) {
+                                Text(
+                                    "Mais detalhes",
+                                    style = appTypography.numberMd,
+                                    color = textCta
                                 )
                             }
                         }
-                    }
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "Açucar",
-                                style = appTypography.heading3,
-                                color = textPrimary
-                            )
-                            Text(
-                                "${dish.details.sugar} g",
-                                style = appTypography.numberSm,
-                                color = textPrimary
-                            )
-                        }
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            items(6) {
-                                Box(
-                                    modifier = Modifier
-                                        .height(8.dp)
-                                        .width(42.dp)
-                                        .clip(RoundedCornerShape(80.dp))
-                                        .background(primary)
-                                )
-                            }
-                        }
-                    }
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "Gorduras",
-                                style = appTypography.heading3,
-                                color = textPrimary
-                            )
-                            Text(
-                                "${dish.details.fats} g",
-                                style = appTypography.numberSm,
-                                color = textPrimary
-                            )
-                        }
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            items(6) {
-                                Box(
-                                    modifier = Modifier
-                                        .height(8.dp)
-                                        .width(42.dp)
-                                        .clip(RoundedCornerShape(80.dp))
-                                        .background(primary)
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Button(
-                        onClick = onClickShowDetails,
-                        colors = ButtonDefaults.buttonColors(containerColor = primary),
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(vertical = 12.dp)
-                    ) {
-                        Text(
-                            "Mais detalhes",
-                            style = appTypography.numberMd,
-                            color = textCta
-                        )
                     }
                 }
             }
         }
-
     }
 }
 
@@ -280,6 +531,29 @@ fun PlateDetailScreen(
 @Composable
 private fun PlateDetailPreview() {
     PlateDetailScreen(
+        state = PlateDetailState.SimpleDetails,
+        onBack = {},
+        onClickShowDetails = {},
+        dish = DishModel(
+            photoUrl = "https://example.com/images/sushi.jpg",
+            name = "Combo Sushi",
+            category = "principal",
+            description = "Seleção de sushis variados, incluindo nigiri e sashimi.",
+            calories = "280 kcal",
+            energy = 280,
+            portionTotal = "220g",
+            typeDish = "Principal",
+            details = Details(12, 38, 8, 6),
+            moreDetails = MoreDetails(280, 12, 38, 6, 35, 600, 300, 40, 2, 20, 8, 0, 0.2)
+        ),
+    )
+}
+
+@Preview
+@Composable
+private fun PlateDetailPreview2() {
+    PlateDetailScreen(
+        state = PlateDetailState.MoreDetails,
         onBack = {},
         onClickShowDetails = {},
         dish = DishModel(
